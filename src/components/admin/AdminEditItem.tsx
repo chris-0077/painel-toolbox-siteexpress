@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { Item, Category, ItemCode } from '@/types'
+import type { Item, Category } from '@/types'
 
 interface Props {
   item: Item
@@ -48,7 +48,7 @@ export default function AdminEditItem({ item, onBack, onSave }: Props) {
       .eq('parent_item_id', item.id)
 
     if (data && data.length > 0) {
-      setCodeBlocks(data.map((c, i) => ({
+      setCodeBlocks(data.map((c) => ({
         id: c.id,
         label: c.label || '',
         instruction: c.instruction || '',
