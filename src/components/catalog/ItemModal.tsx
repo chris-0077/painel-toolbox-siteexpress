@@ -11,9 +11,12 @@ export default function ItemModal({ item, codes, onClose }: Props) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
+    // Desabilita scroll do Lenis
+    document.documentElement.classList.add('modal-open')
     const originalOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
+      document.documentElement.classList.remove('modal-open')
       document.body.style.overflow = originalOverflow
     }
   }, [])

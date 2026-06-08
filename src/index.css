@@ -18,6 +18,22 @@ html {
   scroll-behavior: smooth;
 }
 
+html.modal-open,
+html.modal-open body {
+  overflow: hidden !important;
+  height: 100% !important;
+  touch-action: none;
+}
+
+html.modal-open * {
+  pointer-events: none;
+}
+
+html.modal-open .modal-scroll,
+html.modal-open .modal-scroll * {
+  pointer-events: auto;
+}
+
 body {
   margin: 0;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
