@@ -307,7 +307,7 @@ export default function AdminNewItem() {
               <textarea
                 value={block.code}
                 onChange={(e) => updateCodeBlock(block.id, 'code', e.target.value)}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-dark-card)', fontSize: '12px', color: 'var(--color-text)', fontFamily: 'monospace', minHeight: '100px', resize: 'vertical' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-dark-card)', fontSize: '12px', color: 'var(--color-text)', fontFamily: 'monospace', minHeight: '100px', resize: 'vertical', whiteSpace: 'pre', overflowWrap: 'normal', overflowX: 'auto' }}
                 placeholder="Cole o código aqui..."
               />
             </div>
