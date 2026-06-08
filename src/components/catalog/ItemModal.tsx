@@ -1,16 +1,6 @@
-import { useEffect } from 'react'
-import type { Item } from '@/types'
-
-interface CodeBlock {
-  label: string
-  instruction: string
-  code: string
-}
-
-const mockCodeBlocks: CodeBlock[] = [
-  { label: 'HTML', instruction: 'Cole no widget HTML do Elementor', code: '<div class="hero-section">\n  <h1>Título aqui</h1>\n</div>' },
-  { label: 'CSS', instruction: 'Cole no CSS personalizado do Elementor (Configurações > CSS)', code: '.hero-section {\n  background: linear-gradient(135deg, #1a1a2e, #16213e);\n  padding: 80px 40px;\n}' },
-]
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import type { Item, ItemCode } from '@/types'
 
 interface Props {
   item: Item
@@ -18,15 +8,34 @@ interface Props {
 }
 
 export default function ItemModal({ item, onClose }: Props) {
+  const [codes, setCodes] = useState<ItemCode[]>([])
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
   useEffect(() => {
     document.body.style.overflow = 'hidden'
+    fetchCodes()
     return () => {
       document.body.style.overflow = ''
     }
-  }, [])
+  }, [item.id])
 
-  function copyToClipboard(text: string) {
-    navigator.clipboard.writeText(text)
+  async function fetchCodes() {
+    const { data } = await supabase
+      .from('codes')
+      .select('*')
+      .eq('parent_item_id', item.id)
+
+    if (data) setCodes(data)
+  }
+
+  async function copyToClipboard(text: string, codeId: string) {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedId(codeId)
+      setTimeout(() => setCopiedId(null), 2000)
+    } catch (error) {
+      console.error('Erro ao copiar:', error)
+    }
   }
 
   return (
@@ -39,11 +48,17 @@ export default function ItemModal({ item, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ position: 'relative' }}>
-          <img
-            src={item.preview_url}
-            alt={item.title}
-            style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '12px', display: 'block' }}
-          />
+          {item.preview_url ? (
+            <img
+              src={item.preview_url}
+              alt={item.title}
+              style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: '12px', display: 'block' }}
+            />
+          ) : (
+            <div style={{ width: '100%', aspectRatio: '16/9', background: 'var(--color-dark-lighter)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
+              Sem imagem
+            </div>
+          )}
           <button
             onClick={onClose}
             style={{ position: 'absolute', top: '12px', right: '12px', width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}
@@ -59,25 +74,52 @@ export default function ItemModal({ item, onClose }: Props) {
             {item.description}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-            {mockCodeBlocks.map((block, index) => (
-              <div key={index} style={{ background: 'var(--color-dark-lighter)', borderRadius: '8px', padding: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-text)' }}>{block.label}</span>
-                  <button
-                    onClick={() => copyToClipboard(block.code)}
-                    style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', background: 'var(--color-purple)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 500 }}
-                  >
-                    Copiar
-                  </button>
+            {codes.length === 0 ? (
+              <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', padding: '20px' }}>
+                Nenhum código adicionado a este item.
+              </p>
+            ) : (
+              codes.map((block) => (
+                <div key={block.id} style={{ background: 'var(--color-dark-lighter)', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-text)' }}>{block.label || 'Código'}</span>
+                    <button
+                      onClick={() => copyToClipboard(block.code, block.id)}
+                      style={{
+                        fontSize: '12px',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        background: copiedId === block.id ? '#22c55e' : 'var(--color-purple)',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: 500,
+                        transition: 'background 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      {copiedId === block.id ? (
+                        <>
+                          <span>✓</span> Copiado!
+                        </>
+                      ) : (
+                        'Copiar'
+                      )}
+                    </button>
+                  </div>
+                  {block.instruction && (
+                    <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
+                      {block.instruction}
+                    </p>
+                  )}
+                  <pre style={{ fontSize: '12px', color: 'var(--color-text-muted)', overflowX: 'auto', background: 'var(--color-dark)', borderRadius: '6px', padding: '10px', margin: 0 }}>
+                    <code>{block.code}</code>
+                  </pre>
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '8px' }}>
-                  {block.instruction}
-                </p>
-                <pre style={{ fontSize: '12px', color: 'var(--color-text-muted)', overflowX: 'auto', background: 'var(--color-dark)', borderRadius: '6px', padding: '10px', margin: 0 }}>
-                  <code>{block.code}</code>
-                </pre>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
