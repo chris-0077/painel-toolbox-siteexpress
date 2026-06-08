@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import type { Item, Category } from '@/types'
 
 interface Props {
-  onEdit: () => void
+  onEdit: (item: Item) => void
 }
 
 export default function AdminItems({ onEdit }: Props) {
@@ -63,7 +63,7 @@ export default function AdminItems({ onEdit }: Props) {
             return (
               <div key={item.id} style={{ borderRadius: '12px', border: '1px solid var(--color-border)', overflow: 'hidden', background: 'var(--color-dark-card)', position: 'relative' }}>
                 <button
-                  onClick={onEdit}
+                  onClick={() => onEdit(item)}
                   style={{ position: 'absolute', top: '8px', right: '8px', width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', zIndex: 1 }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
