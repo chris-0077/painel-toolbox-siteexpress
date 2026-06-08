@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dark: #1a1a2e;
+  --color-dark-lighter: #22223a;
+  --color-dark-card: #2a2a42;
+  --color-purple: #6c3ce0;
+  --color-purple-light: #8b5cf6;
+  --color-blue: #4a3aff;
+  --color-pink: #ff3c78;
+  --color-pink-hover: #ff5a90;
+  --color-text: #ffffff;
+  --color-text-muted: #b0b0c0;
+  --color-border: #3a3a5c;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+  background-attachment: fixed;
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+.accordion-content.open {
+  grid-template-rows: 1fr;
+}
+.accordion-inner {
+  overflow: hidden;
+}
+
+::selection {
+  background: var(--color-purple);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-purple);
+}
+
