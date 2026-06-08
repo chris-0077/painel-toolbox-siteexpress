@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { mockCategories } from '@/data/mock'
+import type { Category } from '@/types'
 
 interface CodeBlock {
   id: string
@@ -41,6 +41,16 @@ export default function AdminNewItem() {
   }
 
   const [saving, setSaving] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
+
+  async function fetchCategories() {
+    const { data } = await supabase.from('categories').select('*').order('sort_order')
+    if (data) setCategories(data)
+  }
 
   async function handleSave() {
     if (!form.title || !form.category_id) {
@@ -146,7 +156,7 @@ export default function AdminNewItem() {
               style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-dark-lighter)', fontSize: '14px', color: 'var(--color-text)' }}
             >
               <option value="">Selecione...</option>
-              {mockCategories.filter((c) => c.parent_id !== null).map((cat) => (
+              {categories.filter((c) => c.parent_id !== null).map((cat) => (
                 <option key={cat.id} value={cat.id}>{cat.label}</option>
               ))}
             </select>

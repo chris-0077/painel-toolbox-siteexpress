@@ -2,7 +2,7 @@ export interface Category {
   id: string
   label: string
   slug: string
-  order: number
+  sort_order: number
   parent_id: string | null
   created_at: string
 }
@@ -19,10 +19,11 @@ export interface Item {
 
 export interface ItemCode {
   id: string
-  item_id: string
+  parent_item_id: string
   label: string
+  instruction: string
   code: string
-  order: number
+  created_at: string
 }
 
 export interface Profile {

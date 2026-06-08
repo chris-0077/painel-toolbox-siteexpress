@@ -1,11 +1,22 @@
-import { useState } from 'react'
-import { mockCategories } from '@/data/mock'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 import type { Category } from '@/types'
 
 export default function AdminCategories() {
-  const [categories, setCategories] = useState<Category[]>(mockCategories)
+  const [categories, setCategories] = useState<Category[]>([])
   const [newLabel, setNewLabel] = useState('')
   const [newParent, setNewParent] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
+
+  async function fetchCategories() {
+    const { data } = await supabase.from('categories').select('*').order('sort_order')
+    if (data) setCategories(data)
+    setLoading(false)
+  }
 
   const parents = categories.filter((c) => c.parent_id === null)
 
@@ -13,18 +24,48 @@ export default function AdminCategories() {
     return categories.filter((c) => c.parent_id === parentId)
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!newLabel.trim()) return
     const slug = newLabel.toLowerCase().replace(/\s+/g, '-')
-    setCategories([
-      ...categories,
-      { id: Date.now().toString(), label: newLabel, slug, order: categories.length + 1, parent_id: newParent, created_at: '' },
-    ])
-    setNewLabel('')
+    const sort_order = categories.length + 1
+
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .insert([{ label: newLabel, slug, sort_order, parent_id: newParent }])
+        .select()
+        .single()
+
+      if (error) throw error
+      if (data) setCategories([...categories, data])
+      setNewLabel('')
+    } catch (error) {
+      console.error('Erro ao adicionar categoria:', error)
+      alert('Erro ao adicionar categoria')
+    }
   }
 
-  function handleDelete(id: string) {
-    setCategories(categories.filter((c) => c.id !== id && c.parent_id !== id))
+  async function handleDelete(id: string) {
+    if (!confirm('Excluir categoria e suas subcategorias?')) return
+
+    try {
+      // Excluir subcategorias primeiro
+      const children = categories.filter((c) => c.parent_id === id)
+      for (const child of children) {
+        await supabase.from('categories').delete().eq('id', child.id)
+      }
+      // Excluir categoria pai
+      await supabase.from('categories').delete().eq('id', id)
+
+      setCategories(categories.filter((c) => c.id !== id && c.parent_id !== id))
+    } catch (error) {
+      console.error('Erro ao excluir:', error)
+      alert('Erro ao excluir categoria')
+    }
+  }
+
+  if (loading) {
+    return <p style={{ color: 'var(--color-text-muted)' }}>Carregando...</p>
   }
 
   return (

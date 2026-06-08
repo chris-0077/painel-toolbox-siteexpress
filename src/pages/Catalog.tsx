@@ -1,35 +1,66 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { mockCategories, mockItems } from '@/data/mock'
+import { supabase } from '@/lib/supabase'
 import CategorySidebar from '@/components/catalog/CategorySidebar'
 import ItemCard from '@/components/catalog/ItemCard'
 import ItemModal from '@/components/catalog/ItemModal'
-import type { Item } from '@/types'
+import type { Item, Category } from '@/types'
 
 export default function Catalog() {
+  const [categories, setCategories] = useState<Category[]>([])
+  const [items, setItems] = useState<Item[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  async function fetchData() {
+    try {
+      const [categoriesRes, itemsRes] = await Promise.all([
+        supabase.from('categories').select('*').order('sort_order'),
+        supabase.from('items').select('*').eq('is_published', true),
+      ])
+
+      if (categoriesRes.data) setCategories(categoriesRes.data)
+      if (itemsRes.data) setItems(itemsRes.data)
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredItems = selectedCategory
     ? selectedCategory.startsWith('all-')
       ? (() => {
           const parentSlug = selectedCategory.replace('all-', '')
-          const parent = mockCategories.find((c) => c.slug === parentSlug && c.parent_id === null)
-          if (!parent) return mockItems
-          const childIds = mockCategories.filter((c) => c.parent_id === parent.id).map((c) => c.id)
-          return mockItems.filter((item) => childIds.includes(item.category_id))
+          const parent = categories.find((c) => c.slug === parentSlug && c.parent_id === null)
+          if (!parent) return items
+          const childIds = categories.filter((c) => c.parent_id === parent.id).map((c) => c.id)
+          return items.filter((item) => childIds.includes(item.category_id))
         })()
-      : mockItems.filter((item) => {
-          const cat = mockCategories.find((c) => c.slug === selectedCategory)
+      : items.filter((item) => {
+          const cat = categories.find((c) => c.slug === selectedCategory)
           return cat && item.category_id === cat.id
         })
-    : mockItems
+    : items
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--color-dark)' }}>
+        <p style={{ color: 'var(--color-text-muted)' }}>Carregando...</p>
+      </div>
+    )
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-dark)' }}>
       <CategorySidebar
-        categories={mockCategories}
+        categories={categories}
         selected={selectedCategory}
         onSelect={setSelectedCategory}
       />
@@ -54,15 +85,21 @@ export default function Catalog() {
             </svg>
           </button>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-          {filteredItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              onClick={() => setSelectedItem(item)}
-            />
-          ))}
-        </div>
+        {filteredItems.length === 0 ? (
+          <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', marginTop: '48px' }}>
+            Nenhum item encontrado. Adicione itens no painel admin!
+          </p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            {filteredItems.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onClick={() => setSelectedItem(item)}
+              />
+            ))}
+          </div>
+        )}
       </main>
       {selectedItem && (
         <ItemModal item={selectedItem} onClose={() => setSelectedItem(null)} />
