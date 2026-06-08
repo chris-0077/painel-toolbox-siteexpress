@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { mockCategories } from '@/data/mock'
 
 interface CodeBlock {
@@ -15,6 +15,9 @@ export default function AdminNewItem() {
     preview_url: '',
     category_id: '',
   })
+  const [previewMode, setPreviewMode] = useState<'url' | 'upload'>('url')
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [codeBlocks, setCodeBlocks] = useState<CodeBlock[]>([
     { id: '1', label: '', instruction: '', code: '' },
   ])
@@ -38,6 +41,36 @@ export default function AdminNewItem() {
 
   function handleSave() {
     alert('Item salvo (mock)')
+  }
+
+  async function handleImageUpload(file: File) {
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione um arquivo de imagem.')
+      return
+    }
+
+    setUploading(true)
+    try {
+      // Simular upload - em produção, usar Supabase Storage
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        setForm({ ...form, preview_url: result })
+        setUploading(false)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error)
+      alert('Erro ao fazer upload da imagem.')
+      setUploading(false)
+    }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleImageUpload(file)
+    }
   }
 
   return (
@@ -85,14 +118,89 @@ export default function AdminNewItem() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-text-muted)' }}>URL da Preview (imagem)</label>
-          <input
-            type="text"
-            value={form.preview_url}
-            onChange={(e) => setForm({ ...form, preview_url: e.target.value })}
-            style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-dark-lighter)', fontSize: '14px', color: 'var(--color-text)' }}
-            placeholder="https://..."
-          />
+          <label style={{ fontSize: '12px', fontWeight: 500, color: 'var(--color-text-muted)' }}>Imagem de Preview</label>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <button
+              onClick={() => { setPreviewMode('url'); setForm({ ...form, preview_url: '' }) }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                background: previewMode === 'url' ? 'var(--color-purple)' : 'var(--color-dark-lighter)',
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              URL
+            </button>
+            <button
+              onClick={() => { setPreviewMode('upload'); setForm({ ...form, preview_url: '' }) }}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                background: previewMode === 'upload' ? 'var(--color-purple)' : 'var(--color-dark-lighter)',
+                color: '#fff',
+                fontSize: '12px',
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              Upload
+            </button>
+          </div>
+
+          {previewMode === 'url' ? (
+            <input
+              type="text"
+              value={form.preview_url}
+              onChange={(e) => setForm({ ...form, preview_url: e.target.value })}
+              style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-dark-lighter)', fontSize: '14px', color: 'var(--color-text)' }}
+              placeholder="https://..."
+            />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  border: '2px dashed var(--color-border)',
+                  background: 'var(--color-dark-lighter)',
+                  color: 'var(--color-text-muted)',
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                {uploading ? (
+                  'Enviando...'
+                ) : form.preview_url ? (
+                  '✓ Imagem carregada - clique para trocar'
+                ) : (
+                  '📁 Clique para selecionar imagem'
+                )}
+              </button>
+              {form.preview_url && (
+                <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
+                  <img src={form.preview_url} alt="Preview" style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
