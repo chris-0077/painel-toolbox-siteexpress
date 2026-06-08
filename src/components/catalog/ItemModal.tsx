@@ -1,32 +1,21 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import type { Item, ItemCode } from '@/types'
 
 interface Props {
   item: Item
+  codes: ItemCode[]
   onClose: () => void
 }
 
-export default function ItemModal({ item, onClose }: Props) {
-  const [codes, setCodes] = useState<ItemCode[]>([])
+export default function ItemModal({ item, codes, onClose }: Props) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
-    fetchCodes()
     return () => {
       document.body.style.overflow = ''
     }
-  }, [item.id])
-
-  async function fetchCodes() {
-    const { data } = await supabase
-      .from('codes')
-      .select('*')
-      .eq('parent_item_id', item.id)
-
-    if (data) setCodes(data)
-  }
+  }, [])
 
   async function copyToClipboard(text: string, codeId: string) {
     try {

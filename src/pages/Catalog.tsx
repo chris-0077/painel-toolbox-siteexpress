@@ -4,11 +4,12 @@ import { supabase } from '@/lib/supabase'
 import CategorySidebar from '@/components/catalog/CategorySidebar'
 import ItemCard from '@/components/catalog/ItemCard'
 import ItemModal from '@/components/catalog/ItemModal'
-import type { Item, Category } from '@/types'
+import type { Item, Category, ItemCode } from '@/types'
 
 export default function Catalog() {
   const [categories, setCategories] = useState<Category[]>([])
   const [items, setItems] = useState<Item[]>([])
+  const [codes, setCodes] = useState<ItemCode[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
   const [loading, setLoading] = useState(true)
@@ -20,13 +21,15 @@ export default function Catalog() {
 
   async function fetchData() {
     try {
-      const [categoriesRes, itemsRes] = await Promise.all([
+      const [categoriesRes, itemsRes, codesRes] = await Promise.all([
         supabase.from('categories').select('*').order('sort_order'),
         supabase.from('items').select('*').eq('is_published', true),
+        supabase.from('codes').select('*'),
       ])
 
       if (categoriesRes.data) setCategories(categoriesRes.data)
       if (itemsRes.data) setItems(itemsRes.data)
+      if (codesRes.data) setCodes(codesRes.data)
     } catch (error) {
       console.error('Erro ao buscar dados:', error)
     } finally {
@@ -102,7 +105,7 @@ export default function Catalog() {
         )}
       </main>
       {selectedItem && (
-        <ItemModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+        <ItemModal item={selectedItem} codes={codes.filter(c => c.parent_item_id === selectedItem.id)} onClose={() => setSelectedItem(null)} />
       )}
     </div>
   )
