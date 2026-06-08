@@ -30,9 +30,14 @@ export default function AdminCategories() {
     const sort_order = categories.length + 1
 
     try {
+      const insertData: any = { label: newLabel, slug, sort_order }
+      if (newParent) {
+        insertData.parent_id = newParent
+      }
+
       const { data, error } = await supabase
         .from('categories')
-        .insert([{ label: newLabel, slug, sort_order, parent_id: newParent }])
+        .insert([insertData])
         .select()
         .single()
 
@@ -41,7 +46,7 @@ export default function AdminCategories() {
       setNewLabel('')
     } catch (error) {
       console.error('Erro ao adicionar categoria:', error)
-      alert('Erro ao adicionar categoria')
+      alert('Erro ao adicionar categoria. Verifique o console.')
     }
   }
 
