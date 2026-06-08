@@ -18,7 +18,13 @@ export default function ItemModal({ item, codes, onClose }: Props) {
     }
   }, [])
 
-  async function copyToClipboard(text: string, codeId: string) {
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onClose])
 
   async function copyToClipboard(text: string, codeId: string) {
     try {
@@ -32,16 +38,20 @@ export default function ItemModal({ item, codes, onClose }: Props) {
 
   return (
     <div
+      className="modal-scroll"
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 50,
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
         background: 'rgba(0,0,0,0.6)',
         backdropFilter: 'blur(4px)',
-        padding: '20px',
+        padding: '40px 20px',
+        overflowY: 'auto',
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'var(--color-purple) var(--color-dark-lighter)',
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
@@ -51,25 +61,21 @@ export default function ItemModal({ item, codes, onClose }: Props) {
           borderRadius: '16px',
           width: '100%',
           maxWidth: '720px',
-          maxHeight: 'calc(100vh - 40px)',
-          height: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
           boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
           border: '1px solid var(--color-border)',
+          padding: '30px',
+          marginBottom: '40px',
+          position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className="modal-scroll"
-          style={{
-            overflowY: 'auto',
-            padding: '30px',
-            flex: 1,
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'var(--color-purple) var(--color-dark-lighter)',
-          }}
+        <button
+          onClick={onClose}
+          style={{ position: 'absolute', top: '12px', right: '12px', width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', zIndex: 10 }}
         >
+          ✕
+        </button>
+
         <div style={{ position: 'relative' }}>
           {item.preview_url ? (
             <img
@@ -82,12 +88,6 @@ export default function ItemModal({ item, codes, onClose }: Props) {
               Sem imagem
             </div>
           )}
-          <button
-            onClick={onClose}
-            style={{ position: 'absolute', top: '12px', right: '12px', width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}
-          >
-            ✕
-          </button>
         </div>
         <div style={{ marginTop: '20px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-text)' }}>
