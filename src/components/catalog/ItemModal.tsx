@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import type { Item, ItemCode } from '@/types'
 
 interface Props {
@@ -9,17 +9,22 @@ interface Props {
 
 export default function ItemModal({ item, codes, onClose }: Props) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const modalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const originalStyle = window.getComputedStyle(document.body).overflow
+    // Travar scroll do body
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
     document.body.style.overflow = 'hidden'
+    document.body.style.paddingRight = `${scrollbarWidth}px`
+
     return () => {
-      document.body.style.overflow = originalStyle
+      document.body.style.overflow = ''
+      document.body.style.paddingRight = ''
     }
   }, [])
 
-  function handleBackgroundClick(e: React.MouseEvent) {
-    if (e.target === e.currentTarget) {
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape') {
       onClose()
     }
   }
@@ -36,11 +41,35 @@ export default function ItemModal({ item, codes, onClose }: Props) {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', overflowY: 'auto', padding: '20px' }}
-      onClick={handleBackgroundClick}
-    >
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.6)',
+        backdropFilter: 'blur(4px)',
+ }}
+      onClick={onClose}
+      onKeyDown={handleKeyDown}
+ >
       <div
-        style={{ background: 'var(--color-dark-card)', borderRadius: '16px', width: '90%', maxWidth: '720px', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 25px 50px rgba(0,0,0,0.5)', border: '1px solid var(--color-border)', padding: '30px' }}
+        ref={modalRef}
+        style={{
+          background: 'var(--color-dark-card)',
+          borderRadius: '16px',
+          width: '90%',
+          maxWidth: '720px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch',
+          boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+          border: '1px solid var(--color-border)',
+          padding: '30px',
+          margin: '20px 0',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ position: 'relative' }}>
