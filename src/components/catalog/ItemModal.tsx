@@ -11,19 +11,18 @@ export default function ItemModal({ item, codes, onClose }: Props) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
-    const scrollY = window.scrollY
-    document.body.style.position = 'fixed'
-    document.body.style.top = `-${scrollY}px`
-    document.body.style.width = '100%'
+    const originalStyle = window.getComputedStyle(document.body).overflow
     document.body.style.overflow = 'hidden'
     return () => {
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.width = ''
-      document.body.style.overflow = ''
-      window.scrollTo(0, scrollY)
+      document.body.style.overflow = originalStyle
     }
   }, [])
+
+  function handleBackgroundClick(e: React.MouseEvent) {
+    if (e.target === e.currentTarget) {
+      onClose()
+    }
+  }
 
   async function copyToClipboard(text: string, codeId: string) {
     try {
@@ -37,8 +36,8 @@ export default function ItemModal({ item, codes, onClose }: Props) {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', overflowY: 'auto', padding: '20px' }}
+      onClick={handleBackgroundClick}
     >
       <div
         style={{ background: 'var(--color-dark-card)', borderRadius: '16px', width: '90%', maxWidth: '720px', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 25px 50px rgba(0,0,0,0.5)', border: '1px solid var(--color-border)', padding: '30px' }}
