@@ -60,7 +60,16 @@ export default function ItemModal({ item, codes, onClose }: Props) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ overflowY: 'auto', padding: '30px', flex: 1 }}>
+        <div
+          className="modal-scroll"
+          style={{
+            overflowY: 'auto',
+            padding: '30px',
+            flex: 1,
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'var(--color-purple) var(--color-dark-lighter)',
+          }}
+        >
         <div style={{ position: 'relative' }}>
           {item.preview_url ? (
             <img
