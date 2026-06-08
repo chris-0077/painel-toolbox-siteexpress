@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { supabase } from '@/lib/supabase'
 import { mockCategories } from '@/data/mock'
 
 interface CodeBlock {
@@ -39,8 +40,54 @@ export default function AdminNewItem() {
     navigator.clipboard.writeText(text)
   }
 
-  function handleSave() {
-    alert('Item salvo (mock)')
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    if (!form.title || !form.category_id) {
+      alert('Preencha o nome e selecione uma categoria.')
+      return
+    }
+
+    setSaving(true)
+    try {
+      const { data, error } = await supabase
+        .from('items')
+        .insert([
+          {
+            title: form.title,
+            description: form.description,
+            preview_url: form.preview_url,
+            category_id: form.category_id,
+            is_published: true,
+          },
+        ])
+        .select()
+
+      if (error) throw error
+
+      // Salvar códigos
+      const validCodeBlocks = codeBlocks.filter((b) => b.code.trim())
+      if (validCodeBlocks.length > 0 && data && data[0]) {
+        const codesToInsert = validCodeBlocks.map((b) => ({
+          item_id: data[0].id,
+          label: b.label,
+          instruction: b.instruction,
+          code: b.code,
+        }))
+
+        await supabase.from('codes').insert(codesToInsert)
+      }
+
+      alert('Item salvo com sucesso!')
+      // Limpar formulário
+      setForm({ title: '', description: '', preview_url: '', category_id: '' })
+      setCodeBlocks([{ id: '1', label: '', instruction: '', code: '' }])
+    } catch (error) {
+      console.error('Erro ao salvar:', error)
+      alert('Erro ao salvar item. Verifique o console.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function handleImageUpload(file: File) {
@@ -259,9 +306,10 @@ export default function AdminNewItem() {
         <div style={{ display: 'flex', gap: '8px', paddingTop: '8px' }}>
           <button
             onClick={handleSave}
-            style={{ padding: '10px 20px', borderRadius: '8px', background: 'var(--color-purple)', color: '#fff', fontSize: '14px', fontWeight: 500, border: 'none', cursor: 'pointer' }}
+            disabled={saving}
+            style={{ padding: '10px 20px', borderRadius: '8px', background: saving ? '#6b7280' : 'var(--color-purple)', color: '#fff', fontSize: '14px', fontWeight: 500, border: 'none', cursor: saving ? 'not-allowed' : 'pointer' }}
           >
-            Salvar Item
+            {saving ? 'Salvando...' : 'Salvar Item'}
           </button>
         </div>
       </div>
