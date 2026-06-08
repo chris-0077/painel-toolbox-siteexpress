@@ -139,7 +139,7 @@ export default function ItemModal({ item, codes, onClose }: Props) {
                       {block.instruction}
                     </p>
                   )}
-                  <pre style={{ fontSize: '12px', color: 'var(--color-text-muted)', overflowX: 'auto', background: 'var(--color-dark)', borderRadius: '6px', padding: '10px', margin: 0 }}>
+                  <pre style={{ fontSize: '12px', color: 'var(--color-text-muted)', overflowX: 'auto', background: 'var(--color-dark)', borderRadius: '6px', padding: '10px', margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                     <code>{block.code}</code>
                   </pre>
                 </div>
