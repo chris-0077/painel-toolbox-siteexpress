@@ -79,13 +79,14 @@ export default function AdminNewItem() {
       const validCodeBlocks = codeBlocks.filter((b) => b.code.trim())
       if (validCodeBlocks.length > 0 && data && data[0]) {
         const codesToInsert = validCodeBlocks.map((b) => ({
-          item_id: data[0].id,
+          parent_item_id: data[0].id,
           label: b.label,
           instruction: b.instruction,
           code: b.code,
         }))
 
-        await supabase.from('codes').insert(codesToInsert)
+        const { error: codesError } = await supabase.from('codes').insert(codesToInsert)
+        if (codesError) console.error('Erro ao salvar códigos:', codesError)
       }
 
       alert('Item salvo com sucesso!')
