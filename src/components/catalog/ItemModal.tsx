@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Item, ItemCode } from '@/types'
 
 interface Props {
@@ -11,7 +12,6 @@ export default function ItemModal({ item, codes, onClose }: Props) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
-    // Desabilita scroll do Lenis
     document.documentElement.classList.add('modal-open')
     const originalOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -39,7 +39,7 @@ export default function ItemModal({ item, codes, onClose }: Props) {
     }
   }
 
-  return (
+return createPortal(
     <div
       className="modal-scroll"
       style={{
@@ -149,6 +149,7 @@ export default function ItemModal({ item, codes, onClose }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
